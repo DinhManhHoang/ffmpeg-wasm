@@ -3,7 +3,7 @@ const { createFFmpeg, fetchFile } = require("@ffmpeg/ffmpeg");
 
 const ffmpeg = createFFmpeg({ log: true });
 
-async function mp4ToGif(inputFilePath) {
+async function videoToGif(inputFilePath) {
   try {
     const name = inputFilePath.split("/").pop();
     const ext = name.split(".").pop().toLowerCase();
@@ -24,4 +24,4 @@ async function mp4ToGif(inputFilePath) {
   }
 }
 
-mp4ToGif("https://file-examples-com.github.io/uploads/2018/04/file_example_MOV_1920_2_2MB.mov").then(process.exit);
+videoToGif("https://file-examples-com.github.io/uploads/2018/04/file_example_MOV_1920_2_2MB.mov").then(process.exit);
