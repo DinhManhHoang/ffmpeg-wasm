@@ -1,0 +1,11 @@
+{
+  "name": "ffmpeg-wasm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Sotatek-HoangDinh",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg/core": "^0.10.0",
+    "@ffmpeg/ffmpeg": "^0.10.1"
+  }
+}
