@@ -6,7 +6,6 @@
   "license": "MIT",
   "dependencies": {
     "@ffmpeg/core": "^0.10.0",
-    "@ffmpeg/ffmpeg": "^0.10.1",
-    "comlink": "^4.3.1"
+    "@ffmpeg/ffmpeg": "^0.10.1"
   }
 }
