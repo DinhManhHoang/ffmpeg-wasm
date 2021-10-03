@@ -1,22 +1,30 @@
-const fs = require("fs").promises;
-const { createFFmpeg, fetchFile } = require("@ffmpeg/ffmpeg");
+const { fetchFile } = require("@ffmpeg/ffmpeg");
+const WorkerPool = require("./worker-pool");
+const os = require("os");
+const path = require("path");
 
-const ffmpeg = createFFmpeg({ log: true });
+const pool = new WorkerPool(os.cpus().length, path.resolve(__dirname, "worker.js"));
 
-async function videoToGif(inputFilePath) {
+async function videoToGif(inputFilePathArr) {
   try {
-    const name = inputFilePath.split("/").pop();
-    const ext = name.split(".").pop().toLowerCase();
-    const writtenFiles = [];
-    await ffmpeg.load();
-    ffmpeg.FS("writeFile", `input.${ext}`, await fetchFile(inputFilePath));
-    writtenFiles.push(`input.${ext}`);
-    await ffmpeg.run("-i", `input.${ext}`, "-filter_complex", "fps=24,scale=300:-1,setsar=1,palettegen", "palette.png");
-    writtenFiles.push("palette.png");
-    await ffmpeg.run("-i", `input.${ext}`, "-i", "palette.png", "-filter_complex", "[0]fps=24,scale=300:-1,setsar=1[x];[x][1:v]paletteuse", "-t", "3", "output.gif");
-    writtenFiles.push("output.gif");
-    await fs.writeFile(name.replace(new RegExp(ext + "$"), "gif"), ffmpeg.FS("readFile", "output.gif"));
-    writtenFiles.forEach(file => ffmpeg.FS("unlink", file));
+    const encoder = new TextEncoder();
+    const runners = inputFilePathArr.map(inputFilePath => fetchFile(inputFilePath)
+        .then(filedata => {
+          const filename = encoder.encode(inputFilePath.split("/").pop().toLowerCase());
+          return Promise.resolve({ filename, filedata })
+        })
+        .then(({ filename, filedata }) => new Promise((resolve, reject) => {
+          pool.runTask({ 
+            filename,
+            filedata 
+          }, (err, result) => {
+            if (err) return reject(err);
+            return resolve(result);
+          });
+        }))
+    );
+
+    await Promise.all(runners);
   } catch (error) {
     console.error(error);
   } finally {
@@ -24,4 +32,12 @@ async function videoToGif(inputFilePath) {
   }
 }
 
-videoToGif("https://file-examples-com.github.io/uploads/2018/04/file_example_MOV_1920_2_2MB.mov").then(process.exit);
+videoToGif([
+  "https://assets.curateapi.io/products/assets/50ebbb06-0dfb-411f-9689-6badae03d9a4.mp4",
+  "https://assets.curateapi.io/products/assets/57e0f527-94fc-4f91-bfcc-80229458eb49.mp4",
+  "https://assets.curateapi.io/products/assets/c6402f14-c580-4f39-8070-7121165f57a7.mp4",
+  "https://assets.curateapi.io/products/assets/eee5b040-2f9f-4d56-80bb-0e7de28410d1.mp4",
+  "https://assets.curateapi.io/products/assets/ab0bbc07-3971-4c3e-b101-54d71f76a5ba.mp4",
+  "https://assets.curateapi.io/products/assets/d4dbac12-c035-441d-b70f-9e5f32090e5a.mp4",
+  "https://assets.curateapi.io/products/assets/b157602a-d444-4afe-9b57-85151bccf391.mp4"
+]).then(process.exit);
