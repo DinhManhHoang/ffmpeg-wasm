@@ -11,11 +11,11 @@ parentPort.on("message", task => {
   console.log(`Thread ${threadId} => Converting file ${filename}`);
   makeGif(filename, filedata)
     .then(outputFileName => {
-      console.log(`Thread ${threadId} => Converted successful into ${outputFileName}`);
+      console.log(`Thread ${threadId} => Converted successfully into ${outputFileName}`);
       parentPort.postMessage(outputFileName);
     })
     .catch(error => {
-      console.log(`Thread ${threadId} => Converted failure with error ${error.message}`);
+      console.log(`Thread ${threadId} => Converted fail with error ${error.message}`);
       parentPort.emit("error");
     })
 });
